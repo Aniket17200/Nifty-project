@@ -46,7 +46,7 @@ export default function StartPage() {
                 horzLines: { color: 'rgba(51, 65, 85, 0.4)' },
             },
             width: chartContainerRef.current.clientWidth,
-            height: 400,
+            height: 600,
             timeScale: {
                 timeVisible: true,
                 secondsVisible: false,
@@ -92,17 +92,32 @@ export default function StartPage() {
                 const quote = result.indicators.quote[0];
 
                 // Format data for lightweight-charts
-                const chartData = timestamps.map((timestamp: number, i: number) => ({
-                    time: timestamp,
-                    open: quote.open[i],
-                    high: quote.high[i],
-                    low: quote.low[i],
-                    close: quote.close[i],
-                })).filter((item: any) =>
-                    item.open !== null && item.high !== null && item.low !== null && item.close !== null
-                );
+                const formattedData: any[] = [];
+                const seenTimes = new Set();
 
-                candlestickSeriesRef.current?.setData(chartData);
+                for (let i = 0; i < timestamps.length; i++) {
+                    if (quote.open[i] === null || quote.high[i] === null || quote.low[i] === null || quote.close[i] === null) continue;
+
+                    const date = new Date(timestamps[i] * 1000);
+                    // Standardize time for daily charts (YYYY-MM-DD)
+                    const timeString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+                    if (!seenTimes.has(timeString)) {
+                        seenTimes.add(timeString);
+                        formattedData.push({
+                            time: timeString,
+                            open: quote.open[i],
+                            high: quote.high[i],
+                            low: quote.low[i],
+                            close: quote.close[i],
+                        });
+                    }
+                }
+
+                // Sort ascending just in case
+                formattedData.sort((a, b) => a.time.localeCompare(b.time));
+
+                candlestickSeriesRef.current?.setData(formattedData);
                 chartInstanceRef.current?.timeScale().fitContent();
 
             } catch (err) {
@@ -146,46 +161,69 @@ export default function StartPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0f1a] text-slate-200 font-sans selection:bg-blue-500/30">
-            {/* --- HERO SECTION --- */}
-            <div className="relative overflow-hidden border-b border-slate-800/60 bg-gradient-to-b from-blue-900/10 to-[#0a0f1a]">
-                <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
+        <div className="h-screen bg-gradient-to-br from-[#0f1115] to-[#1a1c23] text-slate-200 font-sans selection:bg-indigo-500/30 overflow-y-auto custom-scrollbar">
 
-                <div className="container mx-auto px-6 py-16 relative z-10 flex flex-col items-center text-center">
-                    <div className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-semibold">
-                        <Sparkles size={16} /> Welcome to the Future of Finance
+            {/* --- NAVBAR SECTION --- */}
+            <nav className="w-full border-b border-indigo-500/10 bg-[#0a0f1a]/80 backdrop-blur-md sticky top-0 z-50">
+                <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+                    {/* Logo area */}
+                    <div className="flex items-center gap-2">
+                        <svg className="text-indigo-500" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <circle cx="12" cy="12" r="3" />
+                            <circle cx="4" cy="7" r="2" />
+                            <circle cx="20" cy="7" r="2" />
+                            <circle cx="4" cy="17" r="2" />
+                            <circle cx="20" cy="17" r="2" />
+                            <line x1="6" y1="8" x2="10" y2="11" />
+                            <line x1="18" y1="8" x2="14" y2="11" />
+                            <line x1="6" y1="16" x2="10" y2="13" />
+                            <line x1="18" y1="16" x2="14" y2="13" />
+                        </svg>
+                        <span className="font-bold text-xl tracking-wide">AST <span className="text-indigo-400">STRATEGIE</span></span>
+                        <span className="text-xs text-slate-500 bg-slate-800/50 px-2 py-0.5 rounded-md ml-2 border border-slate-700/50">v2.5.20</span>
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-                        Stratig Terminal
-                    </h1>
-                    <p className="text-lg md:text-xl text-slate-400 max-w-2xl mb-12">
-                        Your all-in-one AI-powered financial command center. Monitor global events, analyze stocks with AI, and track markets in real-time.
-                    </p>
 
-                    {/* Quick Nav Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    {/* Nav Buttons */}
+                    <div className="hidden md:flex items-center gap-2">
                         <button
                             onClick={() => navigate('/monitor')}
-                            className="group flex items-center justify-center gap-3 px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-0.5"
+                            className="group flex items-center gap-2 px-4 py-2 hover:bg-slate-800 text-slate-300 rounded-lg text-sm font-semibold transition-all"
                         >
-                            <Globe size={20} className="group-hover:rotate-12 transition-transform" />
-                            World Monitor Hub
+                            <Globe size={16} className="text-indigo-400 group-hover:rotate-12 transition-transform" />
+                            World Monitor
                         </button>
                         <button
                             onClick={() => navigate('/stock-research')}
-                            className="group flex items-center justify-center gap-3 px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 rounded-xl font-bold transition-all hover:-translate-y-0.5"
+                            className="group flex items-center gap-2 px-4 py-2 hover:bg-slate-800 text-slate-300 rounded-lg text-sm font-semibold transition-all"
                         >
-                            <LineChart size={20} className="text-green-400 group-hover:scale-110 transition-transform" />
-                            Stock Research AI
+                            <LineChart size={16} className="text-green-400 group-hover:scale-110 transition-transform" />
+                            Stock Research
                         </button>
                         <button
                             onClick={() => navigate('/finance-analysis')}
-                            className="group flex items-center justify-center gap-3 px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 rounded-xl font-bold transition-all hover:-translate-y-0.5"
+                            className="group flex items-center gap-2 px-4 py-2 hover:bg-slate-800 text-slate-300 rounded-lg text-sm font-semibold transition-all"
                         >
-                            <BarChart2 size={20} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                            <BarChart2 size={16} className="text-amber-400 group-hover:scale-110 transition-transform" />
                             Finance Analysis
                         </button>
                     </div>
+                </div>
+            </nav>
+
+            {/* --- HERO SECTION --- */}
+            <div className="relative overflow-hidden border-b border-indigo-500/10">
+                <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
+
+                <div className="container mx-auto px-6 py-12 lg:py-16 relative z-10 flex flex-col items-center text-center">
+                    <div className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-semibold">
+                        <Sparkles size={16} /> Welcome to the Future of Finance
+                    </div>
+                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
+                        Stratig Terminal
+                    </h1>
+                    <p className="text-lg md:text-xl text-slate-400 max-w-2xl mb-4">
+                        Your all-in-one AI-powered financial command center. Monitor global events, analyze stocks with AI, and track markets in real-time.
+                    </p>
                 </div>
             </div>
 
@@ -213,11 +251,11 @@ export default function StartPage() {
                             </select>
                         </div>
                         {/* Chart Container */}
-                        <div ref={chartContainerRef} className="w-full h-[400px] bg-[#0a0f1a]"></div>
+                        <div ref={chartContainerRef} className="w-full h-[600px] bg-[#0a0f1a]"></div>
                     </div>
 
                     {/* Right Panel: Gemini Chat */}
-                    <div className="bg-[#0d1424] border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl flex flex-col h-[400px] lg:h-auto">
+                    <div className="bg-[#0d1424] border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl flex flex-col h-[600px]">
                         <div className="p-4 border-b border-slate-800/60 bg-slate-900/40 flex items-center gap-2">
                             <Bot size={18} className="text-purple-400" />
                             <h2 className="font-bold">Gemini AI Assistant</h2>
@@ -229,8 +267,8 @@ export default function StartPage() {
                                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                     <div
                                         className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${msg.role === 'user'
-                                                ? 'bg-blue-600 text-white rounded-br-none'
-                                                : 'bg-slate-800 text-slate-200 border border-slate-700/50 rounded-bl-none'
+                                            ? 'bg-blue-600 text-white rounded-br-none'
+                                            : 'bg-slate-800 text-slate-200 border border-slate-700/50 rounded-bl-none'
                                             }`}
                                     >
                                         {msg.text}

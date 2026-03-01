@@ -174,6 +174,14 @@ export class PanelLayoutManager implements AppModule {
         </div>
 
         <div class="header-right">
+          <!-- Back to Menu Button -->
+          <a href="/" class="hdr-btn" title="Back to Start Page" style="text-decoration: none; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-right: 1px solid var(--border-color); margin-right: 6px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span class="hdr-btn-label" style="font-weight: 600;">Menu</span>
+          </a>
+
           <!-- Clock -->
           <span class="header-clock" id="headerClock"></span>
 
