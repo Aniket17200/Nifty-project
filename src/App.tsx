@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Settings from './pages/Settings';
 import LiveChannels from './pages/LiveChannels';
+import StockResearch from './pages/StockResearch';
+import FinanceAnalysis from './pages/FinanceAnalysis';
 import './index.css';
 import './styles/main.css';
 import './styles/panels.css';
@@ -14,7 +16,10 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/live-channels" element={<LiveChannels />} />
+                <Route path="/stock-research" element={<StockResearch />} />
+                <Route path="/finance-analysis" element={<FinanceAnalysis />} />
             </Routes>
         </Router>
     );
 }
+

@@ -217,6 +217,223 @@ function htmlVariantPlugin(): Plugin {
   };
 }
 
+function stockResearchPlugin(): Plugin {
+  const PERPLEXITY_KEY = process.env.PERPLEXITY_API_KEY || '';
+  const PERPLEXITY_API = 'https://api.perplexity.ai/chat/completions';
+
+  return {
+    name: 'stock-research-dev',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (req.url !== '/api/stock-research' || req.method !== 'POST') return next();
+
+        // Read POST body
+        let body = '';
+        req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+        req.on('end', async () => {
+          try {
+            const { ticker, name } = JSON.parse(body || '{}') as { ticker?: string; name?: string };
+            const query = ((ticker ?? name ?? '').trim()).toUpperCase();
+            if (!query) {
+              res.statusCode = 400;
+              res.end(JSON.stringify({ error: 'Missing ticker' }));
+              return;
+            }
+
+            const prompt = `You are a professional financial analyst. Provide a comprehensive stock research report for "${query}".
+
+Include ALL of the following sections in your response:
+
+## 1. Company Overview
+- Full company name, sector, industry, headquarters
+- Business model and core revenue streams
+
+## 2. Current Price & Valuation Metrics
+- Latest stock price and market cap
+- P/E ratio, Forward P/E, EPS, Price/Book, Dividend yield
+- 52-week high/low range
+
+## 3. Financial Performance
+- Recent quarterly revenue & earnings trend with growth rates
+- Gross margin, operating margin, net margin
+- Free cash flow and debt situation
+
+## 4. Technical Analysis
+- Current trend (bullish/bearish/consolidating)
+- Key support and resistance levels
+- RSI, MACD, moving averages status
+
+## 5. Bull Case — Why to BUY 🐂
+- Top growth catalysts and competitive moat
+- Upcoming catalysts (earnings, product launches)
+
+## 6. Bear Case — Why to AVOID/SELL 🐻
+- Key risks: competitive threats, macro headwinds, valuation concerns
+
+## 7. Analyst Consensus & Price Targets
+- Rating distribution and average 12-month price target
+
+## 8. AI Investment Verdict 🤖
+- Recommendation (Strong Buy / Buy / Hold / Sell / Strong Sell)
+- 6-month and 12-month price targets
+- Risk level, best suited investor type
+
+Be specific with numbers and price levels. Use real market data where possible.`;
+
+            const perplexityRes = await fetch(PERPLEXITY_API, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${PERPLEXITY_KEY}`,
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                model: 'sonar-pro',
+                messages: [
+                  { role: 'system', content: 'You are an expert financial analyst. Provide detailed, accurate stock research with specific data.' },
+                  { role: 'user', content: prompt },
+                ],
+                max_tokens: 4096,
+                temperature: 0.2,
+                return_citations: true,
+              }),
+            });
+
+            if (!perplexityRes.ok) {
+              const errText = await perplexityRes.text();
+              res.statusCode = perplexityRes.status;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: `Perplexity error: ${errText}` }));
+              return;
+            }
+
+            const data = await perplexityRes.json() as {
+              choices?: Array<{ message?: { content?: string } }>;
+              citations?: string[];
+            };
+            const content = data.choices?.[0]?.message?.content ?? '';
+            const citations = data.citations ?? [];
+
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'public, max-age=300');
+            res.end(JSON.stringify({ content, citations, ticker: query }));
+          } catch (err) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: String(err) }));
+          }
+        });
+      });
+    },
+  };
+}
+
+function financeAnalysisPlugin(): Plugin {
+  const PERPLEXITY_KEY = process.env.PERPLEXITY_API_KEY || '';
+  const PERPLEXITY_API = 'https://api.perplexity.ai/chat/completions';
+
+  return {
+    name: 'finance-analysis-dev',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (req.url !== '/api/finance-analysis' || req.method !== 'POST') return next();
+
+        let body = '';
+        req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+        req.on('end', async () => {
+          try {
+            const { ticker, name } = JSON.parse(body || '{}') as { ticker?: string; name?: string };
+            const query = ((ticker ?? name ?? '').trim()).toUpperCase();
+            if (!query) {
+              res.statusCode = 400;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Missing ticker' }));
+              return;
+            }
+
+            const prompt = `You are a top-tier financial analyst. Write a comprehensive equity/asset research report for "${query}".
+
+Structure your response EXACTLY as follows:
+
+## 1. Company Overview
+Describe the company/asset, sector, industry, business model. How do they make money?
+
+## 2. Current Price & Valuation Metrics
+Latest stock price, market cap. P/E, Forward P/E, EPS, PEG, Price/Book, Price/Sales, EV/EBITDA. Dividend yield. 52-week range.
+
+## 3. Financial Performance
+Last 4 quarters revenue and EPS with YoY growth %. Gross/operating/net margins. Free cash flow. Debt/equity ratio.
+
+## 4. Technical Analysis
+Current trend. Key support and resistance levels. RSI. MACD. 50-day and 200-day MA status. Volume trend.
+
+## 5. Bull Case — Why to BUY 🐂
+Top 4-5 growth catalysts. Competitive moat. Upcoming catalysts. TAM size.
+
+## 6. Bear Case — Why to AVOID/SELL 🐻
+Top 4-5 risks. Competitive threats. Macro headwinds. Valuation concerns.
+
+## 7. Analyst Consensus & Price Targets
+Rating distribution. Consensus price target. Implied upside/downside.
+
+## 8. AI Investment Verdict 🤖
+State: "AI Recommendation: [Strong Buy / Buy / Hold / Sell / Strong Sell]"
+6-month target: $X. 12-month target: $X. Risk level: [Low/Medium/High/Very High]. Best for: [type]. Key trigger.
+
+Use real market data. Be specific with numbers.`;
+
+            const perplexityRes = await fetch(PERPLEXITY_API, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${PERPLEXITY_KEY}`,
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                model: 'sonar-pro',
+                messages: [
+                  { role: 'system', content: 'You are an expert financial analyst with real-time market access. Give accurate, data-rich, specific stock research with actual price levels and percentages.' },
+                  { role: 'user', content: prompt },
+                ],
+                max_tokens: 4096,
+                temperature: 0.15,
+                return_citations: true,
+              }),
+            });
+
+            if (!perplexityRes.ok) {
+              const errText = await perplexityRes.text();
+              res.statusCode = perplexityRes.status;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: `Perplexity error: ${errText}` }));
+              return;
+            }
+
+            const data = await perplexityRes.json() as {
+              choices?: Array<{ message?: { content?: string } }>;
+              citations?: string[];
+            };
+            const content = data.choices?.[0]?.message?.content ?? '';
+            const citations = data.citations ?? [];
+
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Cache-Control', 'public, max-age=300');
+            res.end(JSON.stringify({ content, citations, ticker: query }));
+          } catch (err) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: String(err) }));
+          }
+        });
+      });
+    },
+  };
+}
+
 function polymarketPlugin(): Plugin {
   const GAMMA_BASE = 'https://gamma-api.polymarket.com';
   const ALLOWED_ORDER = ['volume', 'liquidity', 'startDate', 'endDate', 'spread'];
@@ -432,7 +649,7 @@ function sebufApiPlugin(): Plugin {
           if (req.method === 'OPTIONS') {
             res.statusCode = 204;
             for (const [key, value] of Object.entries(corsHeaders)) {
-              res.setHeader(key, value);
+              res.setHeader(key, value as string);
             }
             res.end();
             return;
@@ -443,7 +660,7 @@ function sebufApiPlugin(): Plugin {
             res.statusCode = 403;
             res.setHeader('Content-Type', 'application/json');
             for (const [key, value] of Object.entries(corsHeaders)) {
-              res.setHeader(key, value);
+              res.setHeader(key, value as string);
             }
             res.end(JSON.stringify({ error: 'Origin not allowed' }));
             return;
@@ -455,7 +672,7 @@ function sebufApiPlugin(): Plugin {
             res.statusCode = 404;
             res.setHeader('Content-Type', 'application/json');
             for (const [key, value] of Object.entries(corsHeaders)) {
-              res.setHeader(key, value);
+              res.setHeader(key, value as string);
             }
             res.end(JSON.stringify({ error: 'Not found' }));
             return;
@@ -470,7 +687,7 @@ function sebufApiPlugin(): Plugin {
             res.setHeader(key, value);
           });
           for (const [key, value] of Object.entries(corsHeaders)) {
-            res.setHeader(key, value);
+            res.setHeader(key, value as string);
           }
           res.end(await response.text());
         } catch (err) {
@@ -674,6 +891,8 @@ export default defineConfig({
     rssProxyPlugin(),
     youtubeLivePlugin(),
     sebufApiPlugin(),
+    stockResearchPlugin(),
+    financeAnalysisPlugin(),
     brotliPrecompressPlugin(),
     VitePWA({
       registerType: 'autoUpdate',

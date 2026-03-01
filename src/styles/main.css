@@ -1016,6 +1016,150 @@ canvas,
   /* This ensures panels scroll UNDER the pinned map (z-index: 100) */
 }
 
+/* ── Stock Research Nav Panel ─────────────────────────────── */
+.stock-research-cta-panel {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(10, 15, 26, 0.95) 100%) !important;
+  border: 1px solid rgba(74, 222, 128, 0.18) !important;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.stock-research-cta-panel:hover {
+  border-color: rgba(74, 222, 128, 0.38) !important;
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.08);
+}
+
+.stock-research-cta-panel::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(74, 222, 128, 0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.panel-badge {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+/* ── Finance Analysis Nav Panel ───────────────────────────── */
+.finance-analysis-cta-panel {
+  background: linear-gradient(135deg, rgba(20, 16, 6, 0.95) 0%, rgba(30, 20, 5, 0.95) 100%) !important;
+  border: 1px solid rgba(245, 158, 11, 0.2) !important;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.finance-analysis-cta-panel:hover {
+  border-color: rgba(245, 158, 11, 0.42) !important;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.08);
+}
+
+.finance-analysis-cta-panel::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -8%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.09) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.panel-badge--amber {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #000 !important;
+  font-weight: 900;
+}
+
+/* ── Shared compact nav-panel body ───────────────────────── */
+.nav-cta-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 14px 18px 16px;
+  gap: 12px;
+  flex: 1;
+  cursor: pointer;
+}
+
+.nav-cta-tagline {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 340px;
+}
+
+.nav-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.nav-cta-arrow {
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.nav-cta-btn:hover .nav-cta-arrow {
+  transform: translateX(3px);
+}
+
+.stock-nav-btn {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  box-shadow: 0 3px 14px rgba(34, 197, 94, 0.28);
+}
+
+.stock-nav-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 20px rgba(34, 197, 94, 0.42);
+}
+
+.stock-nav-btn:active {
+  transform: translateY(0);
+}
+
+.finance-nav-btn {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #000;
+  box-shadow: 0 3px 14px rgba(245, 158, 11, 0.28);
+}
+
+.finance-nav-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 20px rgba(245, 158, 11, 0.44);
+}
+
+.finance-nav-btn:active {
+  transform: translateY(0);
+}
+
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);

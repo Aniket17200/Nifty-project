@@ -715,6 +715,81 @@ export class PanelLayoutManager implements AppModule {
       }
     });
 
+    // ── AI Navigation Panels (compact button cards) ───────────────────────────
+
+    // Helper to create a minimal nav-button panel
+    const createNavPanel = (
+      panelDataKey: string,
+      cssClass: string,
+      icon: string,
+      label: string,
+      badgeClass: string,
+      tagline: string,
+      btnId: string,
+      btnLabel: string,
+      btnClass: string,
+      arrowColor: string,
+      onClick: () => void,
+    ): HTMLElement => {
+      const card = document.createElement('div');
+      card.className = `panel ${cssClass}`;
+      card.setAttribute('data-panel', panelDataKey);
+      card.innerHTML = `
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <span class="panel-title">${icon} ${label}</span>
+          </div>
+          <span class="panel-badge ${badgeClass}">AI</span>
+        </div>
+        <div class="nav-cta-body">
+          <p class="nav-cta-tagline">${tagline}</p>
+          <button class="${btnClass} nav-cta-btn" id="${btnId}">
+            ${btnLabel}
+            <svg class="nav-cta-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </div>
+      `;
+      card.querySelector(`#${btnId}`)?.addEventListener('click', onClick);
+      // Make the whole panel body also clickable
+      card.querySelector('.nav-cta-body')?.addEventListener('click', onClick);
+      return card;
+    };
+
+    // ── Stock Research nav panel ──
+    const stockCard = createNavPanel(
+      'stock-research',
+      'stock-research-cta-panel',
+      '📊',
+      'Stock Research',
+      '',
+      'AI-powered equity deep-dive — bull/bear thesis, technicals & analyst consensus.',
+      'openStockResearchBtn',
+      'Open Stock Research',
+      'stock-nav-btn',
+      '#fff',
+      () => { window.location.href = '/stock-research'; },
+    );
+    panelsGrid.insertBefore(stockCard, panelsGrid.firstChild);
+
+    // ── Finance Analysis nav panel ──
+    const financeCard = createNavPanel(
+      'finance-analysis',
+      'finance-analysis-cta-panel',
+      '📈',
+      'Finance Analysis',
+      'panel-badge--amber',
+      'Instant AI snapshot + 8-section deep-dive on stocks, indices, crypto & commodities.',
+      'openFinanceAnalysisBtn',
+      'Open Finance Analysis',
+      'finance-nav-btn',
+      '#000',
+      () => { window.location.href = '/finance-analysis'; },
+    );
+    const secondChild = panelsGrid.children[1] ?? null;
+    panelsGrid.insertBefore(financeCard, secondChild);
+
     this.ctx.map.onTimeRangeChanged((range) => {
       this.ctx.currentTimeRange = range;
       this.applyTimeRangeFilterDebounced();
