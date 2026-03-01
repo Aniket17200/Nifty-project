@@ -47,6 +47,7 @@
     "fast-xml-parser": "^5.3.7",
     "i18next": "^25.8.13",
     "i18next-browser-languagedetector": "^8.2.1",
+    "lightweight-charts": "^5.1.0",
     "lucide-react": "^0.575.0",
     "maplibre-gl": "^5.16.0",
     "onnxruntime-web": "^1.23.2",

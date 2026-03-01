@@ -815,6 +815,122 @@ function rssProxyPlugin(): Plugin {
   };
 }
 
+function geminiChatPlugin(): Plugin {
+  return {
+    name: 'gemini-chat-dev',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (req.url !== '/api/gemini-chat' || req.method !== 'POST') return next();
+
+        let body = '';
+        req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+        req.on('end', async () => {
+          try {
+            const { prompt, history } = JSON.parse(body || '{}');
+            const GEMINI_KEY = process.env.gemni_key || '';
+
+            if (!GEMINI_KEY) {
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: 'Gemini API key is not configured' }));
+              return;
+            }
+
+            // Simple REST call to Gemini (no extra SDK required on server)
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_KEY}`;
+
+            // Format history for Gemini
+            let formattedContent = [];
+            if (history && Array.isArray(history)) {
+              for (const msg of history) {
+                formattedContent.push({
+                  role: msg.role === 'user' ? 'user' : 'model',
+                  parts: [{ text: msg.text }]
+                });
+              }
+            }
+            formattedContent.push({
+              role: 'user',
+              parts: [{ text: prompt }]
+            });
+
+            const geminiRes = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contents: formattedContent }),
+            });
+
+            if (!geminiRes.ok) {
+              const errText = await geminiRes.text();
+              res.statusCode = geminiRes.status;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: `Gemini error: ${errText}` }));
+              return;
+            }
+
+            const data = await geminiRes.json();
+            const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ response: textResponse }));
+          } catch (err) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: String(err) }));
+          }
+        });
+      });
+    },
+  };
+}
+
+function yahooFinancePlugin(): Plugin {
+  return {
+    name: 'yahoo-finance-dev',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url?.startsWith('/api/yahoo-finance/chart')) {
+          return next();
+        }
+
+        const url = new URL(req.url, 'http://localhost');
+        const symbol = url.searchParams.get('symbol');
+        const interval = url.searchParams.get('interval') || '1d';
+        const range = url.searchParams.get('range') || '1mo';
+
+        if (!symbol) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'Missing symbol parameter' }));
+          return;
+        }
+
+        try {
+          const proxyUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${interval}&range=${range}`;
+
+          const response = await fetch(proxyUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+              'Accept': 'application/json'
+            },
+          });
+
+          const data = await response.text();
+          res.statusCode = response.status;
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Cache-Control', 'public, max-age=60');
+          res.end(data);
+        } catch (error: any) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'Failed to fetch Yahoo Finance' }));
+        }
+      });
+    },
+  };
+}
+
 function youtubeLivePlugin(): Plugin {
   return {
     name: 'youtube-live',
@@ -890,6 +1006,8 @@ export default defineConfig({
     polymarketPlugin(),
     rssProxyPlugin(),
     youtubeLivePlugin(),
+    geminiChatPlugin(),
+    yahooFinancePlugin(),
     sebufApiPlugin(),
     stockResearchPlugin(),
     financeAnalysisPlugin(),

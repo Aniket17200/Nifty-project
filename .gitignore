@@ -43,6 +43,7 @@ Desktop.ini
 *.njsproj
 *.sln
 *.sw?
+.env
 
 # Test output
 coverage/
