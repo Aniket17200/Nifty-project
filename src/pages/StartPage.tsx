@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createChart, ColorType, IChartApi, ISeriesApi } from 'lightweight-charts';
-import { LineChart, BarChart2, Globe, Send, Bot, Sparkles } from 'lucide-react';
+import { LineChart, BarChart2, Globe, Send, Bot, Sparkles, Terminal } from 'lucide-react';
 
 interface ChatMessage {
     id: string;
@@ -198,6 +198,13 @@ export default function StartPage() {
                         >
                             <LineChart size={16} className="text-green-400 group-hover:scale-110 transition-transform" />
                             Stock Research
+                        </button>
+                        <button
+                            onClick={() => navigate('/terminal')}
+                            className="group flex items-center gap-2 px-4 py-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-orange-400 rounded-lg text-sm font-semibold transition-all"
+                        >
+                            <Terminal size={16} className="group-hover:scale-110 transition-transform" />
+                            Bloomberg Terminal
                         </button>
                         <button
                             onClick={() => navigate('/finance-analysis')}

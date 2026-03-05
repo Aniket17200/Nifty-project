@@ -5,6 +5,8 @@ import Settings from './pages/Settings';
 import LiveChannels from './pages/LiveChannels';
 import StockResearch from './pages/StockResearch';
 import FinanceAnalysis from './pages/FinanceAnalysis';
+import Terminal from './pages/Terminal';
+import AltData from './pages/AltData';
 import './index.css';
 import './styles/main.css';
 import './styles/panels.css';
@@ -21,6 +23,8 @@ export default function App() {
                 <Route path="/live-channels" element={<LiveChannels />} />
                 <Route path="/stock-research" element={<StockResearch />} />
                 <Route path="/finance-analysis" element={<FinanceAnalysis />} />
+                <Route path="/terminal" element={<Terminal />} />
+                <Route path="/alt-data" element={<AltData />} />
             </Routes>
         </Router>
     );
